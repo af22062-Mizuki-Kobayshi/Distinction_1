@@ -9,6 +9,7 @@ st.set_page_config(layout="wide")
 st.title("部屋割り")
 
 # 入力欄（5人）
+st.subheader("201,202,203号室の3つの部屋にそれぞれ2人、2人、1人入るときどのような分け方がありますか？")
 st.subheader("出席番号を5人分入力してください")
 cols = st.columns(5)
 names = [col.text_input(f"名前{i+1}", key=f"name_{i}").strip() for i, col in enumerate(cols)]
@@ -44,7 +45,7 @@ if 'gray_flags' not in st.session_state:
 
 def display_room_pattern(roomA, roomB, roomC, name_color, gray=False, show_labels=True):
     rooms = [roomA, roomB, roomC]
-    labels = ["部屋 A", "部屋 B", "部屋 C"] if show_labels else ["部屋"] * 3
+    labels = ["201号室", "202号室", "203号室"] if show_labels else ["部屋"] * 3
     html = f"<div style='border:1px solid gray; padding:10px; margin-top:5px; width:450px;'>"
     html += "<div style='display:flex; justify-content:space-between;'>"
 
