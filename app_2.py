@@ -9,7 +9,7 @@ st.set_page_config(layout="wide")
 st.title("部屋割り")
 
 # 入力欄（5人）
-st.subheader("201,202,203号室の3つの部屋にそれぞれ2人、2人、1人入るときどのような分け方がありますか？")
+st.subheader("201,202,203号室の3つの部屋にそれぞれ2人,2人,1人入るときどのような分け方がありますか？")
 st.subheader("出席番号を5人分入力してください")
 cols = st.columns(5)
 names = [col.text_input(f"名前{i+1}", key=f"name_{i}").strip() for i, col in enumerate(cols)]
