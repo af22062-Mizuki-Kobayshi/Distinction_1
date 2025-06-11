@@ -24,6 +24,8 @@ name_color = {name: COLORS[i] for i, name in enumerate(valid_names)}
 
 # 30通り生成（部屋順を考慮）
 def generate_all_30_patterns(names):
+    if len(names) != 5:
+        return []  # 安全対策
     patterns = []
     seen = set()
     for perm in permutations(names):
@@ -41,16 +43,16 @@ patterns = generate_all_30_patterns(valid_names)
 # 表示モード選択
 mode = st.radio("表示モード", ["部屋区別あり", "部屋区別なし（重複グループ化＋クリックで灰色）"])
 
-# グレー表示状態保持
+# セッションステートで表示状態保持
 if 'gray_flags' not in st.session_state:
-    st.session_state.gray_flags = [False] * len(patterns)
+    st.session_state.gray_flags = {}
 
-# HTMLスタイル表示関数
-def display_room_pattern(roomA, roomB, roomC, name_color, label, idx=None, gray=False, show_labels=True):
+# HTML描画関数
+def display_room_pattern(roomA, roomB, roomC, name_color, label, idx, gray, show_labels=True):
     rooms = [roomA, roomB, roomC]
     labels = ["部屋 A", "部屋 B", "部屋 C"] if show_labels else ["部屋"] * 3
     html = f"<div style='border:1px solid gray; padding:10px; margin:10px; width:450px;'>"
-    html += f"<h4 style='margin:0; cursor:pointer;' id='title-{idx}'>{label}</h4><div style='display:flex; justify-content:space-between;'>"
+    html += f"<h4 style='margin:0;'>{label}</h4><div style='display:flex; justify-content:space-between;'>"
 
     for i in range(3):
         html += "<div><b>{}</b><br>".format(labels[i])
@@ -62,17 +64,16 @@ def display_room_pattern(roomA, roomB, roomC, name_color, label, idx=None, gray=
     html += "</div></div>"
     return html
 
-# 区別ありモード
+# 表示処理
 if mode == "部屋区別あり":
     st.subheader("部屋区別ありの30通り")
     for i in range(0, len(patterns), 2):
         col1, col2 = st.columns(2)
         for col, pattern in zip([col1, col2], patterns[i:i+2]):
             roomA, roomB, roomC = pattern
-            html = display_room_pattern(roomA, roomB, roomC, name_color, f"パターン {i + 1 if col == col1 else i + 2}", show_labels=True)
+            html = display_room_pattern(roomA, roomB, roomC, name_color, f"パターン {i + 1 if col == col1 else i + 2}", idx=None, gray=False, show_labels=True)
             col.markdown(html, unsafe_allow_html=True)
 
-# 区別なしモード（同一組み合わせをグループ化し、初回以外はグレー）
 else:
     st.subheader("部屋区別なし（同一構成をグループ化）")
     grouped = defaultdict(list)
@@ -86,8 +87,16 @@ else:
         cols = st.columns(len(group))
         for j, pattern in enumerate(group):
             roomA, roomB, roomC = pattern
-            gray = (j > 0)  # 2つ目以降は灰色
-            label = f"パターン {group_idx+1}-{j+1}"
-            html = display_room_pattern(roomA, roomB, roomC, name_color, label, idx=idx, gray=gray, show_labels=False)
+            pattern_key = f"pattern_{idx}"
+            if pattern_key not in st.session_state.gray_flags:
+                st.session_state.gray_flags[pattern_key] = False
+
+            # ボタン：クリックでグレー切替
+            button_label = f"{group_idx+1}-{j+1} (クリックで切替)"
+            if cols[j].button(button_label, key=f"btn_{pattern_key}"):
+                st.session_state.gray_flags[pattern_key] = not st.session_state.gray_flags[pattern_key]
+
+            gray = st.session_state.gray_flags[pattern_key]
+            html = display_room_pattern(roomA, roomB, roomC, name_color, f"パターン {button_label}", idx, gray, show_labels=False)
             cols[j].markdown(html, unsafe_allow_html=True)
             idx += 1
