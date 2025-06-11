@@ -6,16 +6,16 @@ COLORS = ['lightblue', 'lightgreen', 'lightpink', 'lightyellow', 'orange']
 GRAY_COLOR = '#e0e0e0'
 
 st.set_page_config(layout="wide")
-st.title("部屋割り30通り表示アプリ")
+st.title("部屋割り")
 
 # 入力欄（5人）
-st.subheader("名前を5人分入力してください")
+st.subheader("出席番号を5人分入力してください")
 cols = st.columns(5)
 names = [col.text_input(f"名前{i+1}", key=f"name_{i}").strip() for i, col in enumerate(cols)]
 
 valid_names = [n for n in names if n]
 if len(valid_names) != 5:
-    st.warning("5人すべての名前を入力してください。")
+    st.warning("5人すべての出席番号を入力してください。")
     st.stop()
 
 name_color = {name: COLORS[i] for i, name in enumerate(valid_names)}
@@ -37,7 +37,7 @@ def generate_all_30_patterns(names):
 
 patterns = generate_all_30_patterns(valid_names)
 
-mode = st.radio("表示モード", ["部屋区別あり", "部屋区別なし（重複グループ化＋クリックで灰色）"])
+mode = st.radio("表示モード", ["部屋区別あり", "部屋区別なし"])
 
 if 'gray_flags' not in st.session_state:
     st.session_state.gray_flags = {}
@@ -59,7 +59,7 @@ def display_room_pattern(roomA, roomB, roomC, name_color, gray=False, show_label
     return html
 
 if mode == "部屋区別あり":
-    st.subheader("部屋区別ありの30通り")
+    st.subheader("部屋区別あり")
     for i in range(0, len(patterns), 2):
         col1, col2 = st.columns(2)
         for col, pattern in zip([col1, col2], patterns[i:i+2]):
@@ -69,7 +69,7 @@ if mode == "部屋区別あり":
             col.markdown(html, unsafe_allow_html=True)
 
 else:
-    st.subheader("部屋区別なし（同一構成をグループ化）")
+    st.subheader("部屋区別なし")
     grouped = defaultdict(list)
     for pattern in patterns:
         roomA, roomB, roomC = pattern
@@ -85,7 +85,7 @@ else:
             if pattern_key not in st.session_state.gray_flags:
                 st.session_state.gray_flags[pattern_key] = False
 
-            button_label = f"パターン {group_idx+1}-{j+1}（クリックで色切替）"
+            button_label = f"パターン {group_idx+1}-{j+1}"
             if cols[j].button(button_label, key=f"btn_{pattern_key}"):
                 st.session_state.gray_flags[pattern_key] = not st.session_state.gray_flags[pattern_key]
 
